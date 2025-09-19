@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Function Transformation Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            height: fit-content;
+        }
+        
+        .graph-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #FFD700;
+        }
+        
+        .control-group h3 {
+            margin: 0 0 15px 0;
+            color: #FFD700;
+            font-size: 1.2em;
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+        
+        label {
+            font-weight: bold;
+            min-width: 120px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #FFD700;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #FFD700;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .value-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 6px;
+            min-width: 50px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        select {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        select option {
+            background: #444;
+            color: white;
+        }
+        
+        #graphCanvas {
+            background: white;
+            border-radius: 12px;
+            border: 3px solid #333;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .equation-display {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            border: 2px solid #FFD700;
+        }
+        
+        .equation-display h3 {
+            margin: 0 0 10px 0;
+            color: #FFD700;
+        }
+        
+        .equation {
+            font-size: 1.8em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .transformations-info {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #FFD700;
+        }
+        
+        .info-card h4 {
+            margin: 0 0 10px 0;
+            color: #FFD700;
+        }
+        
+        .reset-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 1000px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Interactive Function Transformation Tool</h1>
+        
+        <div class="main-content">
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>📊 Choose Parent Function</h3>
+                    <select id="functionSelect">
+                        <option value="linear">Linear: f(x) = x</option>
+                        <option value="quadratic">Quadratic: f(x) = x²</option>
+                        <option value="absolute">Absolute Value: f(x) = |x|</option>
+                        <option value="cubic">Cubic: f(x) = x³</option>
+                        <option value="sqrt">Square Root: f(x) = √x</option>
+                        <option value="reciprocal">Reciprocal: f(x) = 1/x</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <h3>📈 Vertical Transformations</h3>
+                    <div class="control-row">
+                        <label>Vertical Stretch (a):</label>
+                        <div class="slider-container">
+                            <input type="range" id="verticalStretch" min="0.1" max="3" step="0.1" value="1">
+                            <div class="value-display" id="verticalStretchValue">1</div>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <label>Vertical Shift (k):</label>
+                        <div class="slider-container">
+                            <input type="range" id="verticalShift" min="-5" max="5" step="0.5" value="0">
+                            <div class="value-display" id="verticalShiftValue">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>📊 Horizontal Transformations</h3>
+                    <div class="control-row">
+                        <label>Horizontal Stretch (b):</label>
+                        <div class="slider-container">
+                            <input type="range" id="horizontalStretch" min="0.1" max="3" step="0.1" value="1">
+                            <div class="value-display" id="horizontalStretchValue">1</div>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <label>Horizontal Shift (h):</label>
+                        <div class="slider-container">
+                            <input type="range" id="horizontalShift" min="-5" max="5" step="0.5" value="0">
+                            <div class="value-display" id="horizontalShiftValue">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>🔄 Reflections</h3>
+                    <div class="control-row">
+                        <label>Reflect over x-axis:</label>
+                        <input type="checkbox" id="reflectX">
+                    </div>
+                    <div class="control-row">
+                        <label>Reflect over y-axis:</label>
+                        <input type="checkbox" id="reflectY">
+                    </div>
+                </div>
+                
+                <button class="reset-btn" onclick="resetAll()">🔄 Reset All</button>
+            </div>
+            
+            <div class="graph-panel">
+                <canvas id="graphCanvas" width="500" height="500"></canvas>
+                <div class="equation-display">
+                    <h3>Current Equation:</h3>
+                    <div class="equation" id="equationDisplay">f(x) = x</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="transformations-info">
+            <h3 style="text-align: center; color: #FFD700; margin-bottom: 20px;">🎓 Transformation Rules Reference</h3>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>Vertical Transformations</h4>
+                    <p><strong>f(x) + k:</strong> Moves UP k units (k > 0)<br>
+                    <strong>f(x) - k:</strong> Moves DOWN k units (k > 0)<br>
+                    <strong>a·f(x):</strong> Stretches vertically by factor a</p>
+                </div>
+                <div class="info-card">
+                    <h4>Horizontal Transformations</h4>
+                    <p><strong>f(x - h):</strong> Moves RIGHT h units (h > 0)<br>
+                    <strong>f(x + h):</strong> Moves LEFT h units (h > 0)<br>
+                    <strong>f(b·x):</strong> Compresses horizontally by factor b</p>
+                </div>
+                <div class="info-card">
+                    <h4>Reflections</h4>
+                    <p><strong>-f(x):</strong> Reflects over x-axis<br>
+                    <strong>f(-x):</strong> Reflects over y-axis</p>
+                </div>
+                <div class="info-card">
+                    <h4>General Form</h4>
+                    <p><strong>y = a·f(b(x - h)) + k</strong><br>
+                    where a = vertical stretch, b = horizontal compression,<br>
+                    h = horizontal shift, k = vertical shift</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Current transformation values
+        let transforms = {
+            function: 'linear',
+            verticalStretch: 1,
+            verticalShift: 0,
+            horizontalStretch: 1,
+            horizontalShift: 0,
+            reflectX: false,
+            reflectY: false
+        };
+        
+        // Parent functions
+        const parentFunctions = {
+            linear: (x) => x,
+            quadratic: (x) => x * x,
+            absolute: (x) => Math.abs(x),
+            cubic: (x) => x * x * x,
+            sqrt: (x) => x >= 0 ? Math.sqrt(x) : NaN,
+            reciprocal: (x) => x !== 0 ? 1/x : NaN
+        };
+        
+        // Function names for equation display
+        const functionNames = {
+            linear: 'x',
+            quadratic: 'x²',
+            absolute: '|x|',
+            cubic: 'x³',
+            sqrt: '√x',
+            reciprocal: '1/x'
+        };
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('functionSelect').addEventListener('change', updateFunction);
+            document.getElementById('verticalStretch').addEventListener('input', updateVerticalStretch);
+            document.getElementById('verticalShift').addEventListener('input', updateVerticalShift);
+            document.getElementById('horizontalStretch').addEventListener('input', updateHorizontalStretch);
+            document.getElementById('horizontalShift').addEventListener('input', updateHorizontalShift);
+            document.getElementById('reflectX').addEventListener('change', updateReflectX);
+            document.getElementById('reflectY').addEventListener('change', updateReflectY);
+        }
+        
+        function updateFunction() {
+            transforms.function = document.getElementById('functionSelect').value;
+            redraw();
+        }
+        
+        function updateVerticalStretch() {
+            const value = parseFloat(document.getElementById('verticalStretch').value);
+            transforms.verticalStretch = value;
+            document.getElementById('verticalStretchValue').textContent = value;
+            redraw();
+        }
+        
+        function updateVerticalShift() {
+            const value = parseFloat(document.getElementById('verticalShift').value);
+            transforms.verticalShift = value;
+            document.getElementById('verticalShiftValue').textContent = value;
+            redraw();
+        }
+        
+        function updateHorizontalStretch() {
+            const value = parseFloat(document.getElementById('horizontalStretch').value);
+            transforms.horizontalStretch = value;
+            document.getElementById('horizontalStretchValue').textContent = value;
+            redraw();
+        }
+        
+        function updateHorizontalShift() {
+            const value = parseFloat(document.getElementById('horizontalShift').value);
+            transforms.horizontalShift = value;
+            document.getElementById('horizontalShiftValue').textContent = value;
+            redraw();
+        }
+        
+        function updateReflectX() {
+            transforms.reflectX = document.getElementById('reflectX').checked;
+            redraw();
+        }
+        
+        function updateReflectY() {
+            transforms.reflectY = document.getElementById('reflectY').checked;
+            redraw();
+        }
+        
+        function resetAll() {
+            transforms = {
+                function: 'linear',
+                verticalStretch: 1,
+                verticalShift: 0,
+                horizontalStretch: 1,
+                horizontalShift: 0,
+                reflectX: false,
+                reflectY: false
+            };
+            
+            document.getElementById('functionSelect').value = 'linear';
+            document.getElementById('verticalStretch').value = 1;
+            document.getElementById('verticalStretchValue').textContent = 1;
+            document.getElementById('verticalShift').value = 0;
+            document.getElementById('verticalShiftValue').textContent = 0;
+            document.getElementById('horizontalStretch').value = 1;
+            document.getElementById('horizontalStretchValue').textContent = 1;
+            document.getElementById('horizontalShift').value = 0;
+            document.getElementById('horizontalShiftValue').textContent = 0;
+            document.getElementById('reflectX').checked = false;
+            document.getElementById('reflectY').checked = false;
+            
+            redraw();
+        }
+        
+        // Convert mathematical coordinates to canvas coordinates
+        function mathToCanvas(x, y) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = 25; // pixels per unit
+            
+            return {
+                x: centerX + x * scale,
+                y: centerY - y * scale
+            };
+        }
+        
+        function canvasToMath(canvasX, canvasY) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = 25;
+            
+            return {
+                x: (canvasX - centerX) / scale,
+                y: (centerY - canvasY) / scale
+            };
+        }
+        
+        function drawGrid() {
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            const scale = 25;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Draw grid lines
+            for (let i = -10; i <= 10; i++) {
+                // Vertical lines
+                ctx.beginPath();
+                ctx.moveTo(centerX + i * scale, 0);
+                ctx.lineTo(centerX + i * scale, canvas.height);
+                ctx.stroke();
+                
+                // Horizontal lines
+                ctx.beginPath();
+                ctx.moveTo(0, centerY + i * scale);
+                ctx.lineTo(canvas.width, centerY + i * scale);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvas.height);
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            
+            for (let i = -10; i <= 10; i++) {
+                if (i !== 0) {
+                    // X-axis numbers
+                    ctx.fillText(i.toString(), centerX + i * scale, centerY + 15);
+                    // Y-axis numbers
+                    ctx.save();
+                    ctx.textAlign = 'right';
+                    ctx.fillText(i.toString(), centerX - 5, centerY - i * scale + 5);
+                    ctx.restore();
+                }
+            }
+        }
+        
+        function applyTransformation(x) {
+            // Apply horizontal transformations first
+            let inputX = x;
+            
+            // Horizontal reflection
+            if (transforms.reflectY) {
+                inputX = -inputX;
+            }
+            
+            // Horizontal shift and stretch
+            inputX = transforms.horizontalStretch * (inputX - transforms.horizontalShift);
+            
+            // Apply parent function
+            let y = parentFunctions[transforms.function](inputX);
+            
+            if (isNaN(y)) return NaN;
+            
+            // Apply vertical transformations
+            // Vertical stretch
+            y = transforms.verticalStretch * y;
+            
+            // Vertical reflection
+            if (transforms.reflectX) {
+                y = -y;
+            }
+            
+            // Vertical shift
+            y = y + transforms.verticalShift;
+            
+            return y;
+        }
+        
+        function drawFunction() {
+            ctx.strokeStyle = '#ff4757';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            let started = false;
+            const step = 0.05;
+            
+            for (let x = -10; x <= 10; x += step) {
+                const y = applyTransformation(x);
+                
+                if (!isNaN(y) && Math.abs(y) < 15) {
+                    const point = mathToCanvas(x, y);
+                    
+                    if (!started) {
+                        ctx.moveTo(point.x, point.y);
+                        started = true;
+                    } else {
+                        ctx.lineTo(point.x, point.y);
+                    }
+                } else {
+                    started = false;
+                }
+            }
+            
+            ctx.stroke();
+            
+            // For reciprocal function, draw the other branch
+            if (transforms.function === 'reciprocal') {
+                ctx.beginPath();
+                started = false;
+                
+                for (let x = -10; x <= -0.05; x += step) {
+                    const y = applyTransformation(x);
+                    
+                    if (!isNaN(y) && Math.abs(y) < 15) {
+                        const point = mathToCanvas(x, y);
+                        
+                        if (!started) {
+                            ctx.moveTo(point.x, point.y);
+                            started = true;
+                        } else {
+                            ctx.lineTo(point.x, point.y);
+                        }
+                    }
+                }
+                
+                ctx.stroke();
+            }
+        }
+        
+        function drawParentFunction() {
+            ctx.strokeStyle = '#95a5a6';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            
+            let started = false;
+            const step = 0.05;
+            
+            for (let x = -10; x <= 10; x += step) {
+                const y = parentFunctions[transforms.function](x);
+                
+                if (!isNaN(y) && Math.abs(y) < 15) {
+                    const point = mathToCanvas(x, y);
+                    
+                    if (!started) {
+                        ctx.moveTo(point.x, point.y);
+                        started = true;
+                    } else {
+                        ctx.lineTo(point.x, point.y);
+                    }
+                } else {
+                    started = false;
+                }
+            }
+            
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        function updateEquationDisplay() {
+            let equation = '';
+            let funcName = functionNames[transforms.function];
+            
+            // Build the equation step by step
+            let parts = [];
+            
+            // Vertical stretch
+            if (transforms.verticalStretch !== 1) {
+                parts.push(transforms.verticalStretch.toString());
+            }
+            
+            // Vertical reflection
+            if (transforms.reflectX) {
+                parts.push('-');
+            }
+            
+            // Function with horizontal transformations
+            let innerPart = '';
+            
+            if (transforms.horizontalStretch !== 1) {
+                innerPart += transforms.horizontalStretch + '(';
+            }
+            
+            if (transforms.reflectY) {
+                innerPart += '-';
+            }
+            
+            innerPart += 'x';
+            
+            if (transforms.horizontalShift !== 0) {
+                if (transforms.horizontalShift > 0) {
+                    innerPart += ' - ' + transforms.horizontalShift;
+                } else {
+                    innerPart += ' + ' + Math.abs(transforms.horizontalShift);
+                }
+            }
+            
+            if (transforms.horizontalStretch !== 1) {
+                innerPart += ')';
+            }
+            
+            // Replace x in function name with the inner part
+            if (transforms.function === 'sqrt') {
+                funcName = '√(' + innerPart + ')';
+            } else if (transforms.function === 'absolute') {
+                funcName = '|' + innerPart + '|';
+            } else if (transforms.function === 'reciprocal') {
+                funcName = '1/(' + innerPart + ')';
+            } else {
+                funcName = funcName.replace('x', '(' + innerPart + ')');
+            }
+            
+            equation = 'f(x) = ';
+            if (parts.length > 0) {
+                equation += parts.join('') + funcName;
+            } else {
+                equation += funcName;
+            }
+            
+            // Vertical shift
+            if (transforms.verticalShift !== 0) {
+                if (transforms.verticalShift > 0) {
+                    equation += ' + ' + transforms.verticalShift;
+                } else {
+                    equation += ' - ' + Math.abs(transforms.verticalShift);
+                }
+            }
+            
+            document.getElementById('equationDisplay').textContent = equation;
+        }
+        
+        function redraw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawParentFunction();
+            drawFunction();
+            updateEquationDisplay();
+        }
+        
+        // Initialize
+        window.onload = function() {
+            setupEventListeners();
+            redraw();
+        };
+    </script>
+</body>
+</html>
